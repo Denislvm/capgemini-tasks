@@ -115,13 +115,13 @@ azureuser@myVm:~$ az login --identity
 [
   {
     "environmentName": "AzureCloud",
-    "homeTenantId": "8d1157bb-1f96-415f-824b-ab0a29485d7d",
-    "id": "9a6ae428-d8c3-44fe-bdf2-4e08593901a0",
+    "homeTenantId": "",
+    "id": "",
     "isDefault": true,
     "managedByTenants": [],
     "name": "Azure subscription 1",
     "state": "Enabled",
-    "tenantId": "8d1157bb-1f96-415f-824b-ab0a29485d7d",
+    "tenantId": "",
     "user": {
       "assignedIdentityInfo": "MSI",
       "name": "systemAssignedIdentity",
