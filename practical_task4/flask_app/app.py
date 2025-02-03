@@ -1,15 +1,22 @@
-import os
 from flask import Flask
+import os
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 app = Flask(__name__)
 
-# Read values from environment variables
-APP_MESSAGE = os.getenv("APP_MESSAGE", "Default Message")
-PORT = int(os.getenv("PORT", 8000))
+keyvault_name = ""
 
-@app.route("/")
-def home():
-    return f"Message: {APP_MESSAGE}"
+secret_name = ""
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=PORT)
+keyvault_url = ""
+credential = DefaultAzureCredential()
+client = SecretClient(vault_url=keyvault_url, credential=credential)
+
+@app.route('/')
+def hello():
+    retrieved_secret = client.get_secret(secret_name)
+    return f'Secret value: {retrieved_secret.value}'
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=80)
