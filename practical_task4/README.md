@@ -57,6 +57,9 @@ CMD ["python", "app.py"]
 ![image info](pict/2.2.png)
 ![image info](pict/2.1.png)
 
+#### Practical Task 3: Scale Out with Azure Container Instances via Azure Portal
+![image info](pict/3.1.jpg)
+
 #### Practical Task 4: Secure a Docker Container in ACI with Managed Identity via Azure Portal
 
 ![image info](pict/4.1.jpg)
@@ -104,4 +107,169 @@ EXPOSE 80
 
 CMD ["python", "app.py"]
 
+```
+
+#### Practical Task 5: Deploy a Kubernetes Cluster with AKS via Azure Portal
+
+![image info](pict/5.1.jpg)
+```
+az container show --resource-group <RS-name> --name <container-name> --query identity.principalId --output tsv
+```
+![image info](pict/5.2.jpg)
+![image info](pict/5.3.jpg)
+```
+az aks get-credentials --resource-group DenisSlyusarenko --name KS-deniscluster --overwrite-existing
+```
+![image info](pict/5.4.jpg)
+![image info](pict/5.5.jpg)
+
+```
+yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-app
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+
+```
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+```
+
+#### Practical Task 6: Deploy a Containerized Application on AKS
+
+![image info](pict/6.1.jpg)
+![image info](pict/6.2.jpg)
+
+
+#### Practical Task 7: Configure and Use ConfigMaps and Secrets in AKS
+![image info](pict/6.3.jpg)
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app
+  labels:
+    app: node-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-app
+  template:
+    metadata:
+      labels:
+        app: node-app
+    spec:
+      containers:
+      - name: node-app
+        image: denisregistry.azurecr.io/nodejsapp:latest
+        ports:
+          - containerPort: 3000
+        imagePullPolicy: Always
+        env:
+          - name: PORT
+            value: "3000"
+        
+          - name: ENVIRONMENT
+            valueFrom:
+              configMapKeyRef:
+                name: config-data
+                key: environment
+          - name: LOG_LEVEL
+            valueFrom:
+              configMapKeyRef:
+                name: config-data
+                key: log_level
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: password
+```
+
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysecret
+type: Opaque
+data:
+  password: <pass>
+```
+
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-data
+data:
+  environment: "production"
+  log_level: "info"
+```
+
+#### Practical Task 8: Scale Applications in AKS
+
+![image info](pict/8.1.jpg)
+![image info](pict/8.2.jpg)
+![image info](pict/8.3.jpg)
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  labels:
+    app: my-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-app
+        image: nginx:latest
+        ports:
+          - containerPort: 80
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
 ```
