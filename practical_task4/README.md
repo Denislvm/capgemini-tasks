@@ -278,6 +278,9 @@ spec:
 
 ![image info](pict/9.1.jpg)
 ![image info](pict/9.2.jpg)
+```
+ kubectl set image deployment/my-app my-app=<registry>.azurecr.io/<app>:v2
+```
 
 
 #### Bonus task. GitOps with AKS
