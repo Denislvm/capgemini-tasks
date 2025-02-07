@@ -273,3 +273,31 @@ spec:
             cpu: "250m"
             memory: "256Mi"
 ```
+
+#### Practical Task 9: Rolling Update of an Application in AKS
+
+![image info](pict/9.1.jpg)
+![image info](pict/9.2.jpg)
+
+
+#### Bonus task. GitOps with AKS
+
+##### Deploy ArgoCD on AKS
+```
+kubectl create namespace argocd
+
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+##### Change the argocd-server service type to LoadBalancer:
+```
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+```
+
+The initial password for the admin account is auto-generated and stored as clear text in the field password in a secret named argocd-initial-admin-secret in your Argo CD installation namespace. You can simply retrieve this password using kubectl
+```
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+```
+
+![image info](pict/10.1.png)
+![image info](pict/10.2.png)
+![image info](pict/10.3.png)
