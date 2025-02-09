@@ -1,0 +1,1 @@
+#### Practical Task 1: Install and Configure Azure CLI and PowerShell
