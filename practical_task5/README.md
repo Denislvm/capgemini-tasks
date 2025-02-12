@@ -189,6 +189,7 @@ try {
     Connect-AzAccount -Identity
 } catch {
     Write-Error "Authentication failed. $_"
+    exit
 }
 
 # Create a Resource Group if it does not exist
@@ -197,16 +198,15 @@ if (-not (Get-AzResourceGroup -Name $ResourceGroupName -ErrorAction SilentlyCont
     New-AzResourceGroup -Name $ResourceGroupName -Location $Location
 }
 
-# Create VM
 Write-Output "Creating Virtual Machine: $VMName"
 $Credential = New-Object System.Management.Automation.PSCredential ($AdminUsername, (ConvertTo-SecureString $AdminPassword -AsPlainText -Force))
 $VMParams = @{
-    ResourceGroupName  = $ResourceGroupName
-    Location          = $Location
-    Name             = $VMName
-    Credential       = $Credential
-    Image            = "MicrosoftWindowsServer:WindowsServer:2022-datacenter:latest"
-    OpenPorts        = @(80, 3389)  # Opening port for IIS
+    ResourceGroupName = $ResourceGroupName
+    Location         = $Location
+    Name            = $VMName
+    Credential      = $Credential
+    Image           = "MicrosoftWindowsServer:WindowsServer:2022-datacenter:latest"
+    OpenPorts       = @(80, 3389)  # Opening ports for IIS & RDP
 }
 $VM = New-AzVM @VMParams
 
@@ -218,23 +218,31 @@ $VM = Get-AzVM -ResourceGroupName $ResourceGroupName -Name $VMName
 $VM = Add-AzVMDataDisk -VM $VM -Name $DiskName -CreateOption Attach -ManagedDiskId $Disk.Id -Lun 0
 Update-AzVM -ResourceGroupName $ResourceGroupName -VM $VM
 
+# Attach Public IP to VM
 $NIC = Get-AzNetworkInterface -ResourceGroupName $ResourceGroupName | Where-Object { $_.VirtualMachine.Id -match $VMName }
-
 $PublicIPName = "$VMName-PublicIP"
 $PublicIP = Get-AzPublicIpAddress -ResourceGroupName $ResourceGroupName -Name $PublicIPName -ErrorAction SilentlyContinue
+
 if (-not $PublicIP) {
     Write-Output "Creating Public IP: $PublicIPName"
     $PublicIP = New-AzPublicIpAddress -ResourceGroupName $ResourceGroupName -Location $Location -AllocationMethod Static -Name $PublicIPName -Sku Standard
 }
+
 Write-Output "Attaching Public IP to NIC..."
 $NIC.IpConfigurations[0].PublicIpAddress = $PublicIP
 Set-AzNetworkInterface -NetworkInterface $NIC
 
 $PublicIPAddress = (Get-AzPublicIpAddress -ResourceGroupName $ResourceGroupName -Name $PublicIPName).IpAddress
-Write-Output "WebServer is deployed. Access the website at: http://$PublicIPAddress"
+Write-Output "Public IP assigned: $PublicIPAddress"
 
-# Deploy DSC Configuration for IIS
-Write-Output "Deploying DSC Configuration for IIS..."
+# Configure DSC for IIS
+$DSCFolder = "C:\Temp\DSC"
+if (!(Test-Path -Path $DSCFolder)) {
+    Write-Output "Creating directory: $DSCFolder"
+    New-Item -Path $DSCFolder -ItemType Directory -Force
+}
+
+Write-Output "Saving DSC Configuration..."
 $DSCConfig = @"
 Configuration WebServerConfig {
     Import-DscResource -ModuleName PSDesiredStateConfiguration
@@ -252,12 +260,20 @@ Configuration WebServerConfig {
         }
     }
 }
-WebServerConfig
 "@
 
-$DSCFilePath = "C:\Temp\WebServerConfig.ps1"
-$DSCConfig | Out-File -FilePath $DSCFilePath
-Start-DscConfiguration -Path C:\Temp -Wait -Verbose -Force
+$DSCFilePath = "$DSCFolder\WebServerConfig.ps1"
+$DSCConfig | Out-File -FilePath $DSCFilePath -Encoding utf8
+
+# Compile DSC Configuration
+Write-Output "Compiling DSC Configuration..."
+. $DSCFilePath
+WebServerConfig -OutputPath $DSCFolder
+
+# Apply DSC Configuration
+Write-Output "Applying DSC Configuration..."
+Start-DscConfiguration -Path $DSCFolder -Wait -Verbose -Force
 
 Write-Output "WebServer is deployed. Access the website at: http://$PublicIPAddress"
+Write-Output "RDP is enabled. Connect using: $PublicIPAddress (port 3389)"
 ```
