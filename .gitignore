@@ -1,1 +1,4 @@
 venv/
+practical_task6/task2/terraform/.terraform/
+practical_task6/task3/.terraform/
+practical_task6/task3/terraform.tfvars
