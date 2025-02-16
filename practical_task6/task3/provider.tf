@@ -10,7 +10,6 @@ terraform {
     storage_account_name = "denisslstorageacc"
     container_name       = "terraform-state"
     key                  = "terraform.tfstate"
-    access_key           = var.access_key
   }
 }
 
