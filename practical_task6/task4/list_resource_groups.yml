@@ -1,0 +1,13 @@
+- name: Get Azure Resource Groups
+  hosts: localhost
+  vars:
+    ansible_python_interpreter: "/home/denis/projects/capgemini_engineering/venv/bin/python3"
+
+  tasks:
+    - name: Retrieve resource groups
+      azure.azcollection.azure_rm_resourcegroup_info:
+      register: rg_info
+
+    - name: Print resource groups
+      debug:
+        var: rg_info

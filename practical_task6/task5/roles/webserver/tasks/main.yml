@@ -1,0 +1,17 @@
+- name: Install Nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Start and enable Nginx
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Deploy custom index.html
+  ansible.builtin.template:
+    src: index.html
+    dest: /var/www/html/index.html
+  notify: Restart Nginx

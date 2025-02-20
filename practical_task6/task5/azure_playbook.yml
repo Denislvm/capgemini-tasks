@@ -1,0 +1,100 @@
+- name: Deploy Azure Infrastructure
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+
+    # - name: Create a virtual network
+    #   azure.azcollection.azure_rm_virtualnetwork:
+    #     resource_group: "{{ resource_group }}"
+    #     name: "{{ vnet_name }}"
+    #     location: "{{ location }}"
+    #     address_prefixes: "10.0.0.0/16"
+    #   register: vnet_output
+
+    # - name: Create a subnet
+    #   azure.azcollection.azure_rm_subnet:
+    #     resource_group: "{{ resource_group }}"
+    #     name: "{{ subnet_name }}"
+    #     virtual_network: "{{ vnet_name }}"
+    #     address_prefix: "10.0.1.0/24"
+    #   register: subnet_output
+
+    # - name: Create a public IP address
+    #   azure.azcollection.azure_rm_publicipaddress:
+    #     resource_group: "{{ resource_group }}"
+    #     name: "{{ public_ip_name }}"
+    #     allocation_method: Static
+    #   register: output_ip
+
+    # - name: Get my public IP
+    #   command: curl ifconfig.me
+    #   register: my_ip
+
+    # - name: Debug my_ip
+    #   debug:
+    #     var: my_ip.stdout
+
+    # - name: Public IP of VM
+    #   debug:
+    #     msg: "The public IP is {{ output_ip.state.ip_address }}."
+
+    # - name: Create a Network Security Group
+    #   azure.azcollection.azure_rm_securitygroup:
+    #     resource_group: "{{ resource_group }}"
+    #     name: "{{ nsg_name }}"
+    #     rules:
+    #       - name: AllowSSH
+    #         priority: 1001
+    #         direction: Inbound
+    #         access: Allow
+    #         protocol: Tcp
+    #         source_address_prefix: "{{ my_ip.stdout }}"
+    #         destination_port_range: 22
+    #       - name: AllowHTTP
+    #         priority: 1002
+    #         direction: Inbound
+    #         access: Allow
+    #         protocol: Tcp
+    #         source_address_prefix: "*"
+    #         destination_port_range: 80
+
+    # - name: Create virtual network interface card
+    #   azure.azcollection.azure_rm_networkinterface:
+    #     resource_group: "{{ resource_group }}"
+    #     name: "{{ nic }}"
+    #     virtual_network: "{{ vnet_name }}"
+    #     subnet: "{{ subnet_name }}"
+    #     ip_configurations:
+    #     - name: myNIC-ipconfig
+    #       public_ip_address_name: "{{ public_ip_name }}"
+    #     security_group: "{{ nsg_name }}"
+
+    # - name: Create a VM
+    #   azure.azcollection.azure_rm_virtualmachine:
+    #     resource_group: "{{ resource_group }}"
+    #     name: "{{ vm_name }}"
+    #     location: "{{ location }}"
+    #     vm_size: "{{ vm_size }}"
+    #     admin_username: "{{ admin_username }}"
+    #     ssh_password_enabled: no
+    #     ssh_public_keys:
+    #       - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+    #         key_data: "{{ lookup('file', ssh_key_path) }}"
+    #     network_interfaces: "{{ nic }}"
+    #     image:
+    #       offer: 0001-com-ubuntu-server-jammy
+    #       publisher: Canonical
+    #       sku: 22_04-lts
+    #       version: latest
+    #   register: vm_info
+
+    # - name: Set public IP fact
+    #   set_fact:
+    #     public_ip: "{{ output_ip.state.ip_address }}"
+
+- name: Configure Web Server
+  hosts: azure
+  become: yes
+  roles:
+    - webserver
